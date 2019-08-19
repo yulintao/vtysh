@@ -1,0 +1,10 @@
+cscope*
+TAGS
+tags
+*.cmd
+*.d
+*.map
+*.o
+*.txt
+x86_64-native-linuxapp-gcc
+build
