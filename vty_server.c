@@ -1,6 +1,9 @@
 #include <vty_comm.h>
 #include <vty.h>
 #include <thread.h>
+#include <command.h>
+#include <memory.h>
+#include <log.h>
 
 
 #define BGP_VTY_PORT 2222
@@ -113,6 +116,14 @@ struct quagga_signal_t zebra_signals[] =
   },
 };
 
+
+static void vty_do_exit(void)
+{
+  printf ("\nend.\n");
+  exit (0);
+}
+
+
 int
 main(int argc, char **argv)
 {
@@ -122,6 +133,13 @@ main(int argc, char **argv)
 
     /* random seed from time */
     srandom (time (NULL));
+
+    zlog_default = openzlog ("common-cli", ZLOG_NONE,
+                             LOG_CONS|LOG_NDELAY|LOG_PID, LOG_DAEMON);
+    zlog_set_level (NULL, ZLOG_DEST_SYSLOG, ZLOG_DISABLED);
+    zlog_set_level (NULL, ZLOG_DEST_STDOUT, ZLOG_DISABLED);
+    zlog_set_level (NULL, ZLOG_DEST_MONITOR, LOG_DEBUG);
+
 
     /*
     * initializations
@@ -145,5 +163,6 @@ main(int argc, char **argv)
 
     vty_serv_sock(vty_addr, vty_port ,BGP_VTYSH_PATH);
 
+    vty_stdio (vty_do_exit);
     thread_main(master);
 }

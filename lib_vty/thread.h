@@ -22,8 +22,6 @@
 #ifndef _ZEBRA_THREAD_H
 #define _ZEBRA_THREAD_H
 
-#include <zebra.h>
-
 struct rusage_t
 {
 #ifdef HAVE_RUSAGE

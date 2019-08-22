@@ -61,11 +61,6 @@
 #include <features.h>
 #endif
 
-/* machine dependent includes */
-#ifdef HAVE_LINUX_VERSION_H
-#include <linux/version.h>
-#endif /* HAVE_LINUX_VERSION_H */
-
 #ifdef HAVE_ASM_TYPES_H
 #include <asm/types.h>
 #endif /* HAVE_ASM_TYPES_H */
@@ -202,5 +197,63 @@
 #ifdef HAVE_GLIBC_BACKTRACE
 #include <execinfo.h>
 #endif /* HAVE_GLIBC_BACKTRACE */
+
+/* MAX / MIN are not commonly defined, but useful */
+#ifndef MAX
+#define MAX(a, b) \
+	({ typeof (a) _a = (a); \
+	   typeof (b) _b = (b); \
+	   _a > _b ? _a : _b; })
+#endif
+#ifndef MIN
+#define MIN(a, b) \
+	({ typeof (a) _a = (a); \
+	   typeof (b) _b = (b); \
+	   _a < _b ? _a : _b; })
+#endif
+
+#define ZEBRA_NUM_OF(x) (sizeof (x) / sizeof (x[0]))
+
+/* Zebra message types. */
+#define ZEBRA_INTERFACE_ADD                1
+#define ZEBRA_INTERFACE_DELETE             2
+#define ZEBRA_INTERFACE_ADDRESS_ADD        3
+#define ZEBRA_INTERFACE_ADDRESS_DELETE     4
+#define ZEBRA_INTERFACE_UP                 5
+#define ZEBRA_INTERFACE_DOWN               6
+#define ZEBRA_IPV4_ROUTE_ADD               7
+#define ZEBRA_IPV4_ROUTE_DELETE            8
+#define ZEBRA_IPV6_ROUTE_ADD               9
+#define ZEBRA_IPV6_ROUTE_DELETE           10
+#define ZEBRA_REDISTRIBUTE_ADD            11
+#define ZEBRA_REDISTRIBUTE_DELETE         12
+#define ZEBRA_REDISTRIBUTE_DEFAULT_ADD    13
+#define ZEBRA_REDISTRIBUTE_DEFAULT_DELETE 14
+#define ZEBRA_IPV4_NEXTHOP_LOOKUP         15
+#define ZEBRA_IPV6_NEXTHOP_LOOKUP         16
+#define ZEBRA_IPV4_IMPORT_LOOKUP          17
+#define ZEBRA_IPV6_IMPORT_LOOKUP          18
+#define ZEBRA_INTERFACE_RENAME            19
+#define ZEBRA_ROUTER_ID_ADD               20
+#define ZEBRA_ROUTER_ID_DELETE            21
+#define ZEBRA_ROUTER_ID_UPDATE            22
+#define ZEBRA_HELLO                       23
+#define ZEBRA_IPV4_NEXTHOP_LOOKUP_MRIB    24
+#define ZEBRA_VRF_UNREGISTER              25
+#define ZEBRA_INTERFACE_LINK_PARAMS       26
+#define ZEBRA_NEXTHOP_REGISTER            27
+#define ZEBRA_NEXTHOP_UNREGISTER          28
+#define ZEBRA_NEXTHOP_UPDATE              29
+#define ZEBRA_MESSAGE_MAX                 30
+
+
+/* Address family numbers from RFC1700. */
+typedef enum {
+  AFI_IP  = 1,
+  AFI_IP6 = 2,
+  AFI_ETHER = 3,                /* RFC 1700 has "6" for 802.* */
+#define AFI_MAX 4
+} afi_t;
+
 
 

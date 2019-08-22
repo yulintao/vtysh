@@ -19,8 +19,6 @@
  * 02111-1307, USA.  
  */
 
-#include <zebra.h>
-
 #include <sys/un.h>
 #include <setjmp.h>
 #include <sys/wait.h>
@@ -34,8 +32,6 @@
 #include "memory.h"
 #include "vtysh/vtysh.h"
 #include "log.h"
-#include "bgpd/bgp_vty.h"
-#include "vrf.h"
 
 /* Struct VTY. */
 struct vty *vty;
@@ -53,20 +49,11 @@ struct vtysh_client
 } vtysh_client[] =
 {
   { .fd = -1, .name = "zebra", .flag = VTYSH_ZEBRA, .path = ZEBRA_VTYSH_PATH},
-  { .fd = -1, .name = "ripd", .flag = VTYSH_RIPD, .path = RIP_VTYSH_PATH},
-  { .fd = -1, .name = "ripngd", .flag = VTYSH_RIPNGD, .path = RIPNG_VTYSH_PATH},
-  { .fd = -1, .name = "ospfd", .flag = VTYSH_OSPFD, .path = OSPF_VTYSH_PATH},
-  { .fd = -1, .name = "ospf6d", .flag = VTYSH_OSPF6D, .path = OSPF6_VTYSH_PATH},
-  { .fd = -1, .name = "bgpd", .flag = VTYSH_BGPD, .path = BGP_VTYSH_PATH},
-  { .fd = -1, .name = "isisd", .flag = VTYSH_ISISD, .path = ISIS_VTYSH_PATH},
-  { .fd = -1, .name = "pimd", .flag = VTYSH_PIMD, .path = PIM_VTYSH_PATH},
-  { .fd = -1, .name = "nhrpd", .flag = VTYSH_NHRPD, .path = NHRP_VTYSH_PATH},
+  /*
+   *{ .fd = -1, .name = "bgpd", .flag = VTYSH_BGPD, .path = BGP_VTYSH_PATH},
+   */
 };
 
-
-/* We need direct access to ripd to implement vtysh_exit_ripd_only. */
-static struct vtysh_client *ripd_client = NULL;
- 
 
 /* Using integrated config from Quagga.conf. Default is no. */
 int vtysh_writeconfig_integrated = 0;
@@ -2578,58 +2565,20 @@ vtysh_init_vty (void)
   /* Initialize commands. */
   cmd_init (0);
 
-  /* Install nodes. */
-  install_node (&bgp_node, NULL);
-  install_node (&rip_node, NULL);
-  install_node (&interface_node, NULL);
-  install_node (&link_params_node, NULL);
-  install_node (&rmap_node, NULL);
-  install_node (&zebra_node, NULL);
-  install_node (&bgp_vpnv4_node, NULL);
-  install_node (&bgp_vpnv6_node, NULL);
-  install_node (&bgp_encap_node, NULL);
-  install_node (&bgp_encapv6_node, NULL);
-  install_node (&bgp_ipv4_node, NULL);
-  install_node (&bgp_ipv4m_node, NULL);
-/* #ifdef HAVE_IPV6 */
-  install_node (&bgp_ipv6_node, NULL);
-  install_node (&bgp_ipv6m_node, NULL);
-/* #endif */
-  install_node (&ospf_node, NULL);
-/* #ifdef HAVE_IPV6 */
-  install_node (&ripng_node, NULL);
-  install_node (&ospf6_node, NULL);
-/* #endif */
-  install_node (&babel_node, NULL);
+#if 0
   install_node (&keychain_node, NULL);
   install_node (&keychain_key_node, NULL);
-  install_node (&isis_node, NULL);
+#endif
   install_node (&vty_node, NULL);
 
   vtysh_install_default (VIEW_NODE);
   vtysh_install_default (ENABLE_NODE);
   vtysh_install_default (CONFIG_NODE);
-  vtysh_install_default (BGP_NODE);
-  vtysh_install_default (RIP_NODE);
-  vtysh_install_default (INTERFACE_NODE);
-  vtysh_install_default (LINK_PARAMS_NODE);
-  vtysh_install_default (RMAP_NODE);
-  vtysh_install_default (ZEBRA_NODE);
-  vtysh_install_default (BGP_VPNV4_NODE);
-  vtysh_install_default (BGP_VPNV6_NODE);
-  vtysh_install_default (BGP_ENCAP_NODE);
-  vtysh_install_default (BGP_ENCAPV6_NODE);
-  vtysh_install_default (BGP_IPV4_NODE);
-  vtysh_install_default (BGP_IPV4M_NODE);
-  vtysh_install_default (BGP_IPV6_NODE);
-  vtysh_install_default (BGP_IPV6M_NODE);
-  vtysh_install_default (OSPF_NODE);
-  vtysh_install_default (RIPNG_NODE);
-  vtysh_install_default (OSPF6_NODE);
-  vtysh_install_default (BABEL_NODE);
-  vtysh_install_default (ISIS_NODE);
+
+#if 0
   vtysh_install_default (KEYCHAIN_NODE);
   vtysh_install_default (KEYCHAIN_KEY_NODE);
+#endif
   vtysh_install_default (VTY_NODE);
 
   install_element (VIEW_NODE, &vtysh_enable_cmd);
@@ -2643,66 +2592,17 @@ vtysh_init_vty (void)
   /* install_element (CONFIG_NODE, &vtysh_quit_all_cmd); */
   install_element (ENABLE_NODE, &vtysh_exit_all_cmd);
   install_element (ENABLE_NODE, &vtysh_quit_all_cmd);
-  install_element (RIP_NODE, &vtysh_exit_ripd_cmd);
-  install_element (RIP_NODE, &vtysh_quit_ripd_cmd);
-  install_element (RIPNG_NODE, &vtysh_exit_ripngd_cmd);
-  install_element (RIPNG_NODE, &vtysh_quit_ripngd_cmd);
-  install_element (OSPF_NODE, &vtysh_exit_ospfd_cmd);
-  install_element (OSPF_NODE, &vtysh_quit_ospfd_cmd);
-  install_element (OSPF6_NODE, &vtysh_exit_ospf6d_cmd);
-  install_element (OSPF6_NODE, &vtysh_quit_ospf6d_cmd);
-  install_element (BGP_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_VPNV4_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_VPNV4_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_VPNV6_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_VPNV6_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_ENCAP_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_ENCAP_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_ENCAPV6_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_ENCAPV6_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_IPV4_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_IPV4_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_IPV4M_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_IPV4M_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_IPV6_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_IPV6_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (BGP_IPV6M_NODE, &vtysh_exit_bgpd_cmd);
-  install_element (BGP_IPV6M_NODE, &vtysh_quit_bgpd_cmd);
-  install_element (ISIS_NODE, &vtysh_exit_isisd_cmd);
-  install_element (ISIS_NODE, &vtysh_quit_isisd_cmd);
-  install_element (KEYCHAIN_NODE, &vtysh_exit_ripd_cmd);
-  install_element (KEYCHAIN_NODE, &vtysh_quit_ripd_cmd);
-  install_element (KEYCHAIN_KEY_NODE, &vtysh_exit_ripd_cmd);
-  install_element (KEYCHAIN_KEY_NODE, &vtysh_quit_ripd_cmd);
-  install_element (RMAP_NODE, &vtysh_exit_rmap_cmd);
-  install_element (RMAP_NODE, &vtysh_quit_rmap_cmd);
+
   install_element (VTY_NODE, &vtysh_exit_line_vty_cmd);
   install_element (VTY_NODE, &vtysh_quit_line_vty_cmd);
 
   /* "end" command. */
   install_element (CONFIG_NODE, &vtysh_end_all_cmd);
   install_element (ENABLE_NODE, &vtysh_end_all_cmd);
-  install_element (RIP_NODE, &vtysh_end_all_cmd);
-  install_element (RIPNG_NODE, &vtysh_end_all_cmd);
-  install_element (OSPF_NODE, &vtysh_end_all_cmd);
-  install_element (OSPF6_NODE, &vtysh_end_all_cmd);
-  install_element (BABEL_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_IPV4_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_IPV4M_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_VPNV4_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_VPNV6_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_ENCAP_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_ENCAPV6_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_IPV6_NODE, &vtysh_end_all_cmd);
-  install_element (BGP_IPV6M_NODE, &vtysh_end_all_cmd);
-  install_element (ISIS_NODE, &vtysh_end_all_cmd);
-  install_element (KEYCHAIN_NODE, &vtysh_end_all_cmd);
-  install_element (KEYCHAIN_KEY_NODE, &vtysh_end_all_cmd);
-  install_element (RMAP_NODE, &vtysh_end_all_cmd);
+
   install_element (VTY_NODE, &vtysh_end_all_cmd);
 
+#if 0
   install_element (INTERFACE_NODE, &interface_desc_cmd);
   install_element (INTERFACE_NODE, &no_interface_desc_cmd);
   install_element (INTERFACE_NODE, &vtysh_end_all_cmd);
@@ -2711,80 +2611,19 @@ vtysh_init_vty (void)
   install_element (LINK_PARAMS_NODE, &vtysh_end_all_cmd);
   install_element (LINK_PARAMS_NODE, &vtysh_exit_interface_cmd);
   install_element (INTERFACE_NODE, &vtysh_quit_interface_cmd);
-  install_element (CONFIG_NODE, &router_rip_cmd);
-#ifdef HAVE_IPV6
-  install_element (CONFIG_NODE, &router_ripng_cmd);
-#endif
-  install_element (CONFIG_NODE, &router_ospf_cmd);
-#ifdef HAVE_IPV6
-  install_element (CONFIG_NODE, &router_ospf6_cmd);
-#endif
-  install_element (CONFIG_NODE, &router_isis_cmd);
-  install_element (CONFIG_NODE, &router_bgp_cmd);
-  install_element (CONFIG_NODE, &router_bgp_view_cmd);
-  install_element (BGP_NODE, &address_family_vpnv4_cmd);
-  install_element (BGP_NODE, &address_family_vpnv4_unicast_cmd);
-  install_element (BGP_NODE, &address_family_vpnv6_cmd);
-  install_element (BGP_NODE, &address_family_vpnv6_unicast_cmd);
-  install_element (BGP_NODE, &address_family_encap_cmd);
-  install_element (BGP_NODE, &address_family_encapv6_cmd);
-  install_element (BGP_NODE, &address_family_ipv4_unicast_cmd);
-  install_element (BGP_NODE, &address_family_ipv4_multicast_cmd);
-#ifdef HAVE_IPV6
-  install_element (BGP_NODE, &address_family_ipv6_cmd);
-  install_element (BGP_NODE, &address_family_ipv6_unicast_cmd);
-  install_element (BGP_NODE, &address_family_ipv6_multicast_cmd);
-#endif
-  install_element (BGP_VPNV4_NODE, &exit_address_family_cmd);
-  install_element (BGP_VPNV6_NODE, &exit_address_family_cmd);
-  install_element (BGP_ENCAP_NODE, &exit_address_family_cmd);
-  install_element (BGP_ENCAPV6_NODE, &exit_address_family_cmd);
-  install_element (BGP_IPV4_NODE, &exit_address_family_cmd);
-  install_element (BGP_IPV4M_NODE, &exit_address_family_cmd);
-  install_element (BGP_IPV6_NODE, &exit_address_family_cmd);
-  install_element (BGP_IPV6M_NODE, &exit_address_family_cmd);
-  install_element (CONFIG_NODE, &key_chain_cmd);
-  install_element (CONFIG_NODE, &route_map_cmd);
-  install_element (CONFIG_NODE, &vtysh_line_vty_cmd);
-  install_element (KEYCHAIN_NODE, &key_cmd);
-  install_element (KEYCHAIN_NODE, &key_chain_cmd);
-  install_element (KEYCHAIN_KEY_NODE, &key_chain_cmd);
+
   install_element (CONFIG_NODE, &vtysh_interface_cmd);
   install_element (CONFIG_NODE, &vtysh_no_interface_cmd);
   install_element (CONFIG_NODE, &vtysh_interface_vrf_cmd);
   install_element (CONFIG_NODE, &vtysh_no_interface_vrf_cmd);
   install_element (INTERFACE_NODE, &vtysh_link_params_cmd);
+#endif
   install_element (ENABLE_NODE, &vtysh_show_running_config_cmd);
   install_element (ENABLE_NODE, &vtysh_show_running_config_daemon_cmd);
   install_element (ENABLE_NODE, &vtysh_copy_runningconfig_startupconfig_cmd);
   install_element (ENABLE_NODE, &vtysh_write_file_cmd);
   install_element (ENABLE_NODE, &vtysh_write_cmd);
   /* distribute-list commands. (based on lib/distribute.c distribute_list_init()) */
-  install_element (RIP_NODE, &distribute_list_all_cmd);
-  install_element (RIP_NODE, &no_distribute_list_all_cmd);
-  install_element (RIP_NODE, &distribute_list_cmd);
-  install_element (RIP_NODE, &no_distribute_list_cmd);
-  install_element (RIP_NODE, &distribute_list_prefix_all_cmd);
-  install_element (RIP_NODE, &no_distribute_list_prefix_all_cmd);
-  install_element (RIP_NODE, &distribute_list_prefix_cmd);
-  install_element (RIP_NODE, &no_distribute_list_prefix_cmd);
-  install_element (RIPNG_NODE, &ipv6_distribute_list_all_cmd);
-  install_element (RIPNG_NODE, &no_ipv6_distribute_list_all_cmd);
-  install_element (RIPNG_NODE, &ipv6_distribute_list_cmd);
-  install_element (RIPNG_NODE, &no_ipv6_distribute_list_cmd);
-  install_element (RIPNG_NODE, &ipv6_distribute_list_prefix_all_cmd);
-  install_element (RIPNG_NODE, &no_ipv6_distribute_list_prefix_all_cmd);
-  install_element (RIPNG_NODE, &ipv6_distribute_list_prefix_cmd);
-  install_element (RIPNG_NODE, &no_ipv6_distribute_list_prefix_cmd);
-  install_element (RIPNG_NODE, &distribute_list_all_cmd);
-  install_element (RIPNG_NODE, &no_distribute_list_all_cmd);
-  install_element (RIPNG_NODE, &distribute_list_cmd);
-  install_element (RIPNG_NODE, &no_distribute_list_cmd);
-  install_element (RIPNG_NODE, &distribute_list_prefix_all_cmd);
-  install_element (RIPNG_NODE, &no_distribute_list_prefix_all_cmd);
-  install_element (RIPNG_NODE, &distribute_list_prefix_cmd);
-  install_element (RIPNG_NODE, &no_distribute_list_prefix_cmd);
-
   /* "write terminal" command. */
   install_element (ENABLE_NODE, &vtysh_write_terminal_cmd);
   install_element (ENABLE_NODE, &vtysh_write_terminal_daemon_cmd);
@@ -2801,32 +2640,6 @@ vtysh_init_vty (void)
   install_element (ENABLE_NODE, &vtysh_terminal_no_length_cmd);
   install_element (VIEW_NODE, &vtysh_show_daemons_cmd);
   install_element (ENABLE_NODE, &vtysh_show_daemons_cmd);
-
-  install_element (VIEW_NODE, &vtysh_ping_cmd);
-  install_element (VIEW_NODE, &vtysh_ping_ip_cmd);
-  install_element (VIEW_NODE, &vtysh_traceroute_cmd);
-  install_element (VIEW_NODE, &vtysh_traceroute_ip_cmd);
-#ifdef HAVE_IPV6
-  install_element (VIEW_NODE, &vtysh_ping6_cmd);
-  install_element (VIEW_NODE, &vtysh_traceroute6_cmd);
-#endif
-  install_element (VIEW_NODE, &vtysh_telnet_cmd);
-  install_element (VIEW_NODE, &vtysh_telnet_port_cmd);
-  install_element (VIEW_NODE, &vtysh_ssh_cmd);
-  install_element (ENABLE_NODE, &vtysh_ping_cmd);
-  install_element (ENABLE_NODE, &vtysh_ping_ip_cmd);
-  install_element (ENABLE_NODE, &vtysh_traceroute_cmd);
-  install_element (ENABLE_NODE, &vtysh_traceroute_ip_cmd);
-#ifdef HAVE_IPV6
-  install_element (ENABLE_NODE, &vtysh_ping6_cmd);
-  install_element (ENABLE_NODE, &vtysh_traceroute6_cmd);
-#endif
-  install_element (ENABLE_NODE, &vtysh_telnet_cmd);
-  install_element (ENABLE_NODE, &vtysh_telnet_port_cmd);
-  install_element (ENABLE_NODE, &vtysh_ssh_cmd);
-  install_element (ENABLE_NODE, &vtysh_start_shell_cmd);
-  install_element (ENABLE_NODE, &vtysh_start_bash_cmd);
-  install_element (ENABLE_NODE, &vtysh_start_zsh_cmd);
   
   install_element (VIEW_NODE, &vtysh_show_memory_cmd);
   install_element (ENABLE_NODE, &vtysh_show_memory_cmd);

@@ -19,8 +19,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <zebra.h>
-
 #include "hash.h"
 #include "memory.h"
 

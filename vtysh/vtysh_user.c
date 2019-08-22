@@ -19,9 +19,6 @@
  * 02111-1307, USA.  
  */
 
-#include <zebra.h>
-#include <lib/version.h>
-
 #include <pwd.h>
 
 #ifdef USE_PAM

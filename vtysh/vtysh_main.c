@@ -19,8 +19,6 @@
  * 02111-1307, USA.  
  */
 
-#include <zebra.h>
-
 #include <sys/un.h>
 #include <setjmp.h>
 #include <sys/wait.h>
@@ -29,8 +27,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <lib/version.h>
-#include "getopt.h"
 #include "command.h"
 #include "memory.h"
 
