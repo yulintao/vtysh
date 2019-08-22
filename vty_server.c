@@ -144,7 +144,7 @@ main(int argc, char **argv)
     /*
     * initializations
     */
-    zprivs_init (&vtyserver_privs);
+    /*zprivs_init (&vtyserver_privs);*/
 
     /* Vty related initialize. */
     signal_init (master, array_size(zebra_signals), zebra_signals);
@@ -153,8 +153,8 @@ main(int argc, char **argv)
     vty_init(master);
     memory_init();
 
-    /* BGP related initialization.  */
-    bgp_init ();
+    /* cli related initialization.  */
+    cli_init ();
 
     vty_read_config(config_file, config_default);
 
