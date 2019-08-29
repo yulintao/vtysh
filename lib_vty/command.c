@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "memory.h"
 #include "log.h"
-#include <lib/version.h>
+#include <version.h>
 #include "thread.h"
 #include "vector.h"
 #include "vty.h"

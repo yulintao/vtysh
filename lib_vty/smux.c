@@ -29,7 +29,7 @@
 #include "thread.h"
 #include "linklist.h"
 #include "command.h"
-#include <lib/version.h>
+#include <version.h>
 #include "memory.h"
 #include "sockunion.h"
 #include "smux.h"
