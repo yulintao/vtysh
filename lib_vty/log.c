@@ -22,6 +22,8 @@
 
 #define QUAGGA_DEFINE_DESC_TABLE
 
+#include <zebra.h>
+
 #include "log.h"
 #include "memory.h"
 #include "command.h"

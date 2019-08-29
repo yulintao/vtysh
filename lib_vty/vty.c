@@ -20,9 +20,12 @@
  * 02111-1307, USA.  
  */
 
+#include <zebra.h>
+
 #include "linklist.h"
 #include "thread.h"
 #include "buffer.h"
+#include <lib/version.h>
 #include "command.h"
 #include "sockunion.h"
 #include "memory.h"
